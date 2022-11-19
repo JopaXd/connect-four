@@ -32,6 +32,8 @@ int main () {
 	printf("1. Play a new game\n");
 	printf("2. Load saved game\n");
 	printf("3. Exit the game\n");
+	// This %*c is necessary. Otherwise the scanf makes getchar in getUserInput get skipped.
+	//No idea...
 	scanf("%d%*c", &startChoice);
 	if (startChoice == 1) {
 		clear_screen();
