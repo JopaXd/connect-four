@@ -8,12 +8,16 @@ const char ALPHABET[26] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'
 
 void clear_screen(){
 	//Linux
-	#ifdef linux
+	#ifdef __linux__
 	system("clear");
 	#endif
 	//Windows (Untested)
 	#ifdef _WIN32
 	system("cls");
+	#endif
+	#ifdef __APPLE__
+	//macOS (untested)
+	system("clear");	
 	#endif
 }
 
@@ -142,6 +146,7 @@ int main() {
 				}
 				else{
 					if(makeMove(playingBoardPtr, colChoice, playableCols, turn) == 1) {
+						//Check if there's a winnner.
 						clear_screen();
 						printBoard(playingBoard, playableCols);
 						turn = 1;
@@ -166,6 +171,7 @@ int main() {
 				
 				else{
 					if(makeMove(playingBoardPtr, colChoice, playableCols, turn) == 1) {
+						//Check if there's a winnner.
 						clear_screen();
 						printBoard(playingBoard, playableCols);
 						turn = 0;
