@@ -284,8 +284,24 @@ int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
 	return -1;
 }
 
-int checkTie(){
-	//Implement
+int checkTie(int (*b)[BOARD_ROWS][BOARD_COLS]){
+	int isBoardFull = 1;
+	for (int i=0; i<BOARD_ROWS; i++){
+		for (int j=0; j<BOARD_COLS; j++){
+			if ((*b)[i][j] == -1){
+				isBoardFull = 0;
+				break;
+			}
+		}
+	}
+	if (checkWinner(b) && isBoardFull == 1){
+		//Tie
+		return 1;
+	}
+	else{
+		//Not a tie.
+		return 0;
+	}
 }
 
 int main() {
@@ -357,6 +373,14 @@ int main() {
 								free(playerTwo);
 								break;
 							}
+							else if (checkTie(playingBoardPtr) == 1){
+								printf("It's a tie!\n");
+								printf("Press any key to continue...\n");
+								getchar();
+								free(playerOne);
+								free(playerTwo);
+								break;
+							}
 							//Keep playing
 							else{
 								turn = 1;
@@ -399,6 +423,14 @@ int main() {
 								break;
 							}
 							//Keep playing
+							else if (checkTie(playingBoardPtr) == 1){
+								printf("It's a tie!\n");
+								printf("Press any key to continue...\n");
+								getchar();
+								free(playerOne);
+								free(playerTwo);
+								break;
+							}
 							else{
 								turn = 0;
 							}
