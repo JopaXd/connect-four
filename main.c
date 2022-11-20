@@ -101,7 +101,6 @@ int makeMove(int (*b)[BOARD_ROWS][BOARD_COLS], char colToPlay, char pCols[], int
 }
 
 int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
-	//NOT FULLY IMPLEMENTED
 	int token;
 	int nextToken;
 	int connectedTokens;
@@ -198,6 +197,86 @@ int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
 					connectedTokens = 0;
 				}
 				//Diagoal checks:
+				//Up left check:
+				if (i >= 3 && j >= 3){
+					for (int c=i, d=j; c>=0 && d>=0; c--,d--){
+						nextToken = (*b)[c][d];
+						if (token == nextToken){
+							connectedTokens++;
+							if (connectedTokens==4){
+								//If the token = 0, player one won, if its 1, player two won.
+								return token;
+							}
+						}
+						else{
+							//Blocked by other players token, therefore no connection of 4, move on.
+							connectedTokens=0;
+							break;
+						}
+					}
+					//Not enough tokens connected in this direction, reset the counter.
+					connectedTokens = 0;
+				}
+				//Up right check:
+				if (i <=3 && j>=3){
+					for (int c=i, d=j; c<BOARD_ROWS && d>=0; c++,d--){
+						nextToken = (*b)[c][d];
+						if (token == nextToken){
+							connectedTokens++;
+							if (connectedTokens==4){
+								//If the token = 0, player one won, if its 1, player two won.
+								return token;
+							}
+						}
+						else{
+							//Blocked by other players token, therefore no connection of 4, move on.
+							connectedTokens=0;
+							break;
+						}
+					}
+					//Not enough tokens connected in this direction, reset the counter.
+					connectedTokens = 0;
+				}
+				//Down left check
+				if (i >= 3 && j<=3){
+					for (int c=i, d=j; c>=0 && j<BOARD_COLS; c--, j++){
+						nextToken = (*b)[c][d];
+						if (token == nextToken){
+							connectedTokens++;
+							if (connectedTokens==4){
+								//If the token = 0, player one won, if its 1, player two won.
+								return token;
+							}
+						}
+						else{
+							//Blocked by other players token, therefore no connection of 4, move on.
+							connectedTokens=0;
+							break;
+						}
+					}
+					//Not enough tokens connected in this direction, reset the counter.
+					connectedTokens = 0;
+				}
+				//Down right check
+				if (i <= 3 && j<=3){
+					for (int c=i, d=j; c<BOARD_ROWS && j<BOARD_COLS; c++, d++){
+						nextToken = (*b)[c][d];
+						if (token == nextToken){
+							connectedTokens++;
+							if (connectedTokens==4){
+								//If the token = 0, player one won, if its 1, player two won.
+								return token;
+							}
+						}
+						else{
+							//Blocked by other players token, therefore no connection of 4, move on.
+							connectedTokens=0;
+							break;
+						}
+					}
+					//Not enough tokens connected in this direction, reset the counter.
+					connectedTokens = 0;
+				}
 			}
 		}
 	}
