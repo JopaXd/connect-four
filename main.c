@@ -4,7 +4,6 @@
 
 #define BOARD_ROWS 6
 #define BOARD_COLS 7
-const char ALPHABET[26] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 
 void clear_screen(){
 	//Linux
@@ -84,6 +83,7 @@ int makeMove(int (*b)[BOARD_ROWS][BOARD_COLS], char colToPlay, char pCols[], int
 		//This column is full, therefore not playable.
 		return 0;
 	}
+	//What.
 	for (int i=BOARD_ROWS; i>-1; i--){
 		if ((*b)[i][col] == -1){
 			if (player == 0){
@@ -100,7 +100,68 @@ int makeMove(int (*b)[BOARD_ROWS][BOARD_COLS], char colToPlay, char pCols[], int
 	return 1;
 }
 
+int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
+	int token;
+	int nextToken;
+	int connectedTokens;
+	for (int i = 0; i<BOARD_ROWS; i++){
+		for (int j=0; j<BOARD_COLS; j++){
+			if ((*b)[i][j] == -1){
+				//Skip
+				continue;
+			}
+			else{
+				token = (*b)[i][j];
+				//Left check:
+				//Check if there are enough items to the left
+				if (j>=3){
+					for (int c = j; c>=-1; c--){
+						nextToken = (*b)[i][c];
+						if (token == nextToken){
+							connectedTokens++;
+							if (connectedTokens==4){
+								//If the token = 0, player one won, if its 1, player two won.
+								return token;
+							}
+						}
+						else{
+							//Blocked by other players token, therefore no connection of 4, move on.
+							connectedTokens=0;
+							break;
+						}
+					}
+				}
+				//Right check:
+				//Check if there are enough items to the right.
+				if (j<=3){
+					for (int c = j; c<BOARD_COLS; c++){
+						nextToken = (*b)[i][c];
+						if (token == nextToken){
+							connectedTokens++;
+							if (connectedTokens==4){
+								//If the token = 0, player one won, if its 1, player two won.
+								return token;
+							}
+						}
+						else{
+							//Blocked by other players token, therefore no connection of 4, move on.
+							connectedTokens=0;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	return -1;
+}
+
+int checkTie(){
+	//Implement
+}
+
 int main() {
+	const char ALPHABET[26] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 	int startChoice;
 	int playingBoard[BOARD_ROWS][BOARD_COLS];
 	int (*playingBoardPtr)[BOARD_ROWS][BOARD_COLS] = &playingBoard;
@@ -109,92 +170,131 @@ int main() {
 		playableCols[i] = ALPHABET[i];
 	}
 	int turn=0;
-	char *playerOne = malloc(sizeof(char));
-	char *playerTwo = malloc(sizeof(char));
+	char *playerOne;
+	char *playerTwo;
 	//COMMENT THIS TO DEBUG
-	clear_screen();
-	printf("Choose an option:\n");
-	printf("1. Play a new game\n");
-	printf("2. Load saved game\n");
-	printf("3. Exit the game\n");
-	// This %*c is necessary. Otherwise the scanf makes getchar in getUserInput get skipped.
-	//No idea...
-	scanf("%d%*c", &startChoice);
-	if (startChoice == 1) {
+	// clear_screen();
+	while (1){
 		clear_screen();
-		printf("Name of the first player: ");
-		getUserInput(playerOne);
-		clear_screen();
-		printf("Name of the second player: ");
-		getUserInput(playerTwo);
-		clear_screen();
-		//Create playing board.
-		//AKA. Fill it up with -1.
-		memset(playingBoard, -1, sizeof(playingBoard));
-		printBoard(playingBoard, playableCols);
-		printf("\n");
-		char colChoice;
-		while (1){
-			if (turn == 0){
-				//Player one turn.
-				printf("%s, your turn! ", playerOne);
-				scanf("%c%*c", &colChoice);
-				if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
-					printf("\n");
-					printf("Not a playable field!\n");
+		playerOne = malloc(sizeof(char));
+		playerTwo = malloc(sizeof(char));
+		printf("Choose an option:\n");
+		printf("1. Play a new game\n");
+		printf("2. Load saved game\n");
+		printf("3. Exit the game\n");
+		// This %*c is necessary. Otherwise the scanf makes getchar in getUserInput get skipped.
+		//No idea...
+		scanf("%d%*c", &startChoice);
+		if (startChoice == 1) {
+			clear_screen();
+			printf("Name of the first player: ");
+			getUserInput(playerOne);
+			clear_screen();
+			printf("Name of the second player: ");
+			getUserInput(playerTwo);
+			clear_screen();
+			//Create playing board.
+			//AKA. Fill it up with -1.
+			memset(playingBoard, -1, sizeof(playingBoard));
+			printBoard(playingBoard, playableCols);
+			printf("\n");
+			char colChoice;
+			int winner;
+			while (1){
+				if (turn == 0){
+					//Player one turn.
+					printf("%s, your turn! ", playerOne);
+					scanf("%c%*c", &colChoice);
+					if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
+						printf("\n");
+						printf("Not a playable field!\n");
+						continue;
+					}
+					else{
+						if(makeMove(playingBoardPtr, colChoice, playableCols, turn) == 1) {
+							//Check if there's a winnner.
+							clear_screen();
+							printBoard(playingBoard, playableCols);
+							winner = checkWinner(playingBoardPtr);
+							if (winner != -1){
+								if (winner == 0){
+									printf("%s won!\n", playerOne);
+								}
+								else if (winner == 1){
+									printf("%s won!\n", playerTwo);
+								}
+								printf("Press any key to continue...\n");
+								getchar();
+								free(playerOne);
+								free(playerTwo);
+								break;
+							}
+							//Keep playing
+							else{
+								turn = 1;
+							}
+						}
+						else{
+							printf("\n");
+							printf("This column is full!\n");
+							continue;
+						}	
+					}
 					continue;
 				}
 				else{
-					if(makeMove(playingBoardPtr, colChoice, playableCols, turn) == 1) {
-						//Check if there's a winnner.
-						clear_screen();
-						printBoard(playingBoard, playableCols);
-						turn = 1;
-					}
-					else{
+					//Player two turn!
+					printf("%s, your turn! ", playerTwo);
+					scanf("%c%*c", &colChoice);
+					if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
 						printf("\n");
-						printf("This column is full!\n");
+						printf("Not a playable field!\n");
 						continue;
-					}	
-				}
-				continue;
-			}
-			else{
-				//Player two turn!
-				printf("%s, your turn! ", playerTwo);
-				scanf("%c%*c", &colChoice);
-				if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
-					printf("\n");
-					printf("Not a playable field!\n");
+					}
+					
+					else{
+						if(makeMove(playingBoardPtr, colChoice, playableCols, turn) == 1) {
+							//Check if there's a winnner.
+							clear_screen();
+							printBoard(playingBoard, playableCols);
+							winner = checkWinner(playingBoardPtr);
+							if (winner != -1){
+								if (winner == 0){
+									printf("%s won!\n", playerOne);
+								}
+								else if (winner == 1){
+									printf("%s won!\n", playerTwo);
+								}
+								printf("Press any key to continue...\n");
+								getchar();
+								free(playerOne);
+								free(playerTwo);
+								break;
+							}
+							//Keep playing
+							else{
+								turn = 0;
+							}
+						}
+						else{
+							printf("\n");
+							printf("This coulmnn is full!\n");
+							continue;
+						}	
+					}
 					continue;
 				}
-				
-				else{
-					if(makeMove(playingBoardPtr, colChoice, playableCols, turn) == 1) {
-						//Check if there's a winnner.
-						clear_screen();
-						printBoard(playingBoard, playableCols);
-						turn = 0;
-					}
-					else{
-						printf("\n");
-						printf("This coulmnn is full!\n");
-						continue;
-					}	
-				}
-				continue;
 			}
 		}
-		// printf("%s, %s\n", playerOne, playerTwo);
-		// free(playerOne);
-		// free(playerTwo);
-	}
-	else if (startChoice == 2){
-		//Implement.
-	}
-	else if (startChoice == 3){
-		printf("Exiting...\n");
-		return 0;
+		else if (startChoice == 2){
+			//Implement.
+		}
+		else if (startChoice == 3){
+			printf("Exiting...\n");
+			free(playerOne);
+			free(playerTwo);
+			return 0;
+		}
 	}
 	return 0;
 }
