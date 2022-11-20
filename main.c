@@ -317,7 +317,7 @@ int main() {
 	char *playerOne;
 	char *playerTwo;
 	//COMMENT THIS TO DEBUG
-	// clear_screen();
+	clear_screen();
 	while (1){
 		clear_screen();
 		playerOne = malloc(sizeof(char));
