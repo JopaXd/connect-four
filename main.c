@@ -116,7 +116,7 @@ int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
 				//Left check:
 				//Check if there are enough items to the left
 				if (j>=3){
-					for (int c = j; c>=-1; c--){
+					for (int c = j; c>=0; c--){
 						nextToken = (*b)[i][c];
 						if (token == nextToken){
 							connectedTokens++;
@@ -131,6 +131,8 @@ int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
 							break;
 						}
 					}
+					//Not enough tokens connected in this direction, reset the counter.
+					connectedTokens = 0;
 				}
 				//Right check:
 				//Check if there are enough items to the right.
@@ -150,11 +152,13 @@ int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
 							break;
 						}
 					}
+					//Not enough tokens connected in this direction, reset the counter.
+					connectedTokens = 0;
 				}
 				//Up Check:
 				//Check if there are enough items above.
 				if(i>=3){
-					for (int c=i; c>=-1; c--){
+					for (int c=i; c>=0; c--){
 						nextToken = (*b)[c][j];
 						if (token == nextToken){
 							connectedTokens++;
@@ -169,6 +173,8 @@ int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
 							break;
 						}
 					}
+					//Not enough tokens connected in this direction, reset the counter.
+					connectedTokens = 0;
 				}
 				//Bottom Check:
 				//Check if there are enough items underneath.
@@ -188,7 +194,10 @@ int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
 							break;
 						}
 					}
+					//Not enough tokens connected in this direction, reset the counter.
+					connectedTokens = 0;
 				}
+				//Diagoal checks:
 			}
 		}
 	}
@@ -223,7 +232,7 @@ int main() {
 		printf("2. Load saved game\n");
 		printf("3. Exit the game\n");
 		// This %*c is necessary. Otherwise the scanf makes getchar in getUserInput get skipped.
-		//No idea...
+		// No idea...
 		scanf("%d%*c", &startChoice);
 		if (startChoice == 1) {
 			clear_screen();
@@ -291,7 +300,6 @@ int main() {
 						printf("Not a playable field!\n");
 						continue;
 					}
-					
 					else{
 						if(makeMove(playingBoardPtr, colChoice, playableCols, turn) == 1) {
 							//Check if there's a winnner.
