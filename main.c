@@ -101,6 +101,7 @@ int makeMove(int (*b)[BOARD_ROWS][BOARD_COLS], char colToPlay, char pCols[], int
 }
 
 int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
+	//NOT FULLY IMPLEMENTED
 	int token;
 	int nextToken;
 	int connectedTokens;
@@ -150,9 +151,48 @@ int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
 						}
 					}
 				}
+				//Up Check:
+				//Check if there are enough items above.
+				if(i>=3){
+					for (int c=i; c>=-1; c--){
+						nextToken = (*b)[c][j];
+						if (token == nextToken){
+							connectedTokens++;
+							if (connectedTokens==4){
+								//If the token = 0, player one won, if its 1, player two won.
+								return token;
+							}
+						}
+						else{
+							//Blocked by other players token, therefore no connection of 4, move on.
+							connectedTokens=0;
+							break;
+						}
+					}
+				}
+				//Bottom Check:
+				//Check if there are enough items underneath.
+				if(i<=3){
+					for (int c=i; c<BOARD_ROWS; c++){
+						nextToken = (*b)[c][j];
+						if (token == nextToken){
+							connectedTokens++;
+							if (connectedTokens==4){
+								//If the token = 0, player one won, if its 1, player two won.
+								return token;
+							}
+						}
+						else{
+							//Blocked by other players token, therefore no connection of 4, move on.
+							connectedTokens=0;
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
+	//No winners
 	return -1;
 }
 
