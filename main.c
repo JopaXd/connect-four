@@ -41,13 +41,13 @@ void printBoard(int b[BOARD_ROWS][BOARD_COLS], char pCols[]){
 	for (int i=0; i<BOARD_ROWS; i++){
 		printf("\n");
 		for (int j=0; j<BOARD_COLS; j++){
-			if (b[i][j] == -1){
+			if (b[i][j] == 0){
 				charToPrint = ' ';
 			}
-			else if(b[i][j] == 0){
+			else if(b[i][j] == 1){
 				charToPrint = 'X';
 			}
-			else if(b[i][j] == 1){
+			else if(b[i][j] == 2){
 				charToPrint = 'O';
 			} 
 			if (j==0){
@@ -79,20 +79,20 @@ int makeMove(int (*b)[BOARD_ROWS][BOARD_COLS], char colToPlay, char pCols[], int
 			break;
 		}
 	}
-	if ((*b)[0][col] != -1){
+	if ((*b)[0][col] != 0){
 		//This column is full, therefore not playable.
 		return 0;
 	}
 	//What.
 	for (int i=BOARD_ROWS; i>-1; i--){
-		if ((*b)[i][col] == -1){
-			if (player == 0){
+		if ((*b)[i][col] == 0){
+			if (player == 1){
 				//Player one
-				(*b)[i][col] = 0;
-			}
-			else if (player == 1){
-				//Player two.
 				(*b)[i][col] = 1;
+			}
+			else if (player == 2){
+				//Player two.
+				(*b)[i][col] = 2;
 			}
 			break;
 		}
@@ -106,7 +106,7 @@ int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
 	int connectedTokens;
 	for (int i = 0; i<BOARD_ROWS; i++){
 		for (int j=0; j<BOARD_COLS; j++){
-			if ((*b)[i][j] == -1){
+			if ((*b)[i][j] == 0){
 				//Skip
 				continue;
 			}
@@ -281,14 +281,14 @@ int checkWinner(int (*b)[BOARD_ROWS][BOARD_COLS]){
 		}
 	}
 	//No winners
-	return -1;
+	return 0;
 }
 
 int checkTie(int (*b)[BOARD_ROWS][BOARD_COLS]){
 	int isBoardFull = 1;
 	for (int i=0; i<BOARD_ROWS; i++){
 		for (int j=0; j<BOARD_COLS; j++){
-			if ((*b)[i][j] == -1){
+			if ((*b)[i][j] == 0){
 				isBoardFull = 0;
 				break;
 			}
@@ -309,7 +309,7 @@ int main() {
 	int playingBoard[BOARD_ROWS][BOARD_COLS];
 	int (*playingBoardPtr)[BOARD_ROWS][BOARD_COLS] = &playingBoard;
 	char playableCols[BOARD_COLS] = {'A', 'B', 'C', 'D', 'E', 'F', 'G'};
-	int turn=0;
+	int turn=1;
 	char *playerOne;
 	char *playerTwo;
 	//COMMENT THIS TO DEBUG
@@ -334,14 +334,14 @@ int main() {
 			getUserInput(playerTwo);
 			clear_screen();
 			//Create playing board.
-			//AKA. Fill it up with -1.
-			memset(playingBoard, -1, sizeof(playingBoard));
+			//AKA. Fill it up with zeros.
+			memset(playingBoard, 0, sizeof(playingBoard));
 			printBoard(playingBoard, playableCols);
 			printf("\n");
 			char colChoice;
 			int winner;
 			while (1){
-				if (turn == 0){
+				if (turn == 1){
 					//Player one turn.
 					printf("%s, your turn! ", playerOne);
 					scanf("%c%*c", &colChoice);
@@ -356,11 +356,11 @@ int main() {
 							clear_screen();
 							printBoard(playingBoard, playableCols);
 							winner = checkWinner(playingBoardPtr);
-							if (winner != -1){
-								if (winner == 0){
+							if (winner != 0){
+								if (winner == 1){
 									printf("%s won!\n", playerOne);
 								}
-								else if (winner == 1){
+								else if (winner == 2){
 									printf("%s won!\n", playerTwo);
 								}
 								printf("Press any key to continue...\n");
@@ -379,7 +379,7 @@ int main() {
 							}
 							//Keep playing
 							else{
-								turn = 1;
+								turn = 2;
 							}
 						}
 						else{
@@ -405,11 +405,11 @@ int main() {
 							clear_screen();
 							printBoard(playingBoard, playableCols);
 							winner = checkWinner(playingBoardPtr);
-							if (winner != -1){
-								if (winner == 0){
+							if (winner != 0){
+								if (winner == 1){
 									printf("%s won!\n", playerOne);
 								}
-								else if (winner == 1){
+								else if (winner == 2){
 									printf("%s won!\n", playerTwo);
 								}
 								printf("Press any key to continue...\n");
@@ -428,7 +428,7 @@ int main() {
 								break;
 							}
 							else{
-								turn = 0;
+								turn = 1;
 							}
 						}
 						else{
