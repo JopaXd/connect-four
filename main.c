@@ -508,6 +508,36 @@ Game *allSavedGames(){
 	return games;
 }
 
+Game * savedGamesByPlayer(char * player){
+	Game * savedGames;
+	Game * gamesByPlayer = malloc(sizeof(Game));
+	savedGames = allSavedGames();
+	int gameCount = 0;
+	for (int i=0; i<sizeof(savedGames); i++){
+		//Since i added an empty game with the id of 0, we can determine the end.
+		player[strcspn(player, "\n")] = 0;
+		savedGames[i].player1[strcspn(savedGames[i].player1, "\n")] = 0;
+		savedGames[i].player2[strcspn(savedGames[i].player2, "\n")] = 0;
+		if (savedGames[i].gameID == 0){
+			
+			break;
+		}
+		else if ((strcmp(savedGames[i].player1, player)) == 0 || (strcmp(savedGames[i].player2, player)) == 0) {
+			gamesByPlayer[gameCount].gameID = savedGames[i].gameID;
+			strcpy(gamesByPlayer[gameCount].player1, savedGames[i].player1);
+			strcpy(gamesByPlayer[gameCount].player2, savedGames[i].player2);
+			memcpy(gamesByPlayer[gameCount].board, savedGames[i].board, (sizeof gamesByPlayer[gameCount].board));
+			savedGames = (Game*)realloc(savedGames, sizeof(Game) * (gameCount+1));
+			gameCount++;
+		}
+	}
+	gamesByPlayer = (Game*)realloc(gamesByPlayer, (sizeof(Game) * (gameCount+1)));
+    Game emptyGame;
+    emptyGame.gameID = 0;
+    gamesByPlayer[gameCount] = emptyGame;
+	return gamesByPlayer;
+}
+
 int main() {
 	int startChoice;
 	int playingBoard[BOARD_ROWS][BOARD_COLS];
@@ -558,7 +588,7 @@ int main() {
 						printf("Game saved!\n");
 						continue;
 					}
-					if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
+					else if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
 						printf("\n");
 						printf("Not a playable field!\n");
 						continue;
@@ -661,7 +691,79 @@ int main() {
 			}
 		}
 		else if (startChoice == 2){
-			//Implement.
+			clear_screen();
+			int menuTwoChoice;
+			printf("Choose an option:\n");
+			printf("1. List all saved games\n");
+			printf("2. List all saved games for a particular player\n");
+			printf("3. Show the board for a saved game\n");
+			printf("4. Load a game\n");
+			printf("5. Back to main menu\n");
+			scanf("%d%*c", &menuTwoChoice);
+			if (menuTwoChoice == 1){
+				clear_screen();
+				Game * savedGames;
+				savedGames = allSavedGames();
+				int gameCount = 0;
+				for (int i=0; i<sizeof(savedGames); i++){
+					//Since i added an empty game with the id of 0, we can determine the end.
+					if (savedGames[i].gameID == 0){
+						break;
+					}
+					else{
+						printf("Player 1: %s\n", savedGames[i].player1);
+						printf("Player 2: %s\n", savedGames[i].player2);
+						printf("Game ID: %d\n", savedGames[i].gameID);
+						printf("-------------------------\n");
+						gameCount++;
+					}
+				}
+				if (gameCount == 0){
+					printf("No saved games yet!\n");
+				}
+				printf("Press any key to continue...\n");
+				getchar();
+				continue;
+			}
+			else if(menuTwoChoice == 2){
+				char *playerName;
+				playerName = malloc(sizeof(char));
+				printf("Enter the player name: ");
+				getUserInput(playerName);
+				clear_screen();
+				Game * savedGames;
+				savedGames = savedGamesByPlayer(playerName);
+				int gameCount = 0;
+				for (int i=0; i<sizeof(savedGames); i++){
+					//Since i added an empty game with the id of 0, we can determine the end.
+					if (savedGames[i].player1 == 0){
+						break;
+					}
+					else if(strcmp(savedGames[i].player1, playerName) == 0 || strcmp(savedGames[i].player2, playerName) == 0){
+						printf("Player 1: %s\n", savedGames[i].player1);
+						printf("Player 2: %s\n", savedGames[i].player2);
+						printf("Game ID: %d\n", savedGames[i].gameID);
+						printf("-------------------------\n");
+						gameCount++;
+					}
+				}
+				if (gameCount == 0){
+					printf("No saved games yet!\n");
+				}
+				printf("Press any key to continue...\n");
+				getchar();
+				free(playerName);
+				continue;
+			}
+			else if(menuTwoChoice == 3){
+				
+			}
+			else if(menuTwoChoice == 4){
+				
+			}
+			else if(menuTwoChoice == 5){
+				
+			}
 		}
 		else if (startChoice == 3){
 			printf("Exiting...\n");
