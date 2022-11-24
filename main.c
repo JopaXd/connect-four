@@ -305,14 +305,10 @@ int checkTie(int (*b)[BOARD_ROWS][BOARD_COLS]){
 }
 
 int main() {
-	const char ALPHABET[26] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 	int startChoice;
 	int playingBoard[BOARD_ROWS][BOARD_COLS];
 	int (*playingBoardPtr)[BOARD_ROWS][BOARD_COLS] = &playingBoard;
-	char playableCols[BOARD_COLS];
-	for (int i=0; i<=BOARD_COLS; i++){
-		playableCols[i] = ALPHABET[i];
-	}
+	char playableCols[BOARD_COLS] = {'A', 'B', 'C', 'D', 'E', 'F', 'G'};
 	int turn=0;
 	char *playerOne;
 	char *playerTwo;
