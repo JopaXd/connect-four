@@ -343,11 +343,16 @@ int saveGame(int id, char *playerOne, char *playerTwo, int (*playingBoard)[BOARD
    	file = fopen("saves.txt","a+");
    	if (file == NULL){
    		//Failed to open the saves file.
+   		printf("a");
    		return 0;
    	}
-	if (id == 0){
-		//New game, just write it down and generate an id for it.
-		id = randomInt(1000, 9999);
+	//Find in the file game is saved by id, then overwrite it.
+	//The id will have 4 numbers.
+	char idStr[4];
+	sprintf(idStr, "%d", id);
+	int lineWhereId = findLineInFile(file, idStr);
+	if (lineWhereId == 0){
+		//New game, just append it to the file.
 		fprintf(file, "%d\n", id);
 		fprintf(file, "%s\n", playerOne);
 		fprintf(file, "%s\n", playerTwo);
@@ -357,13 +362,9 @@ int saveGame(int id, char *playerOne, char *playerTwo, int (*playingBoard)[BOARD
 			}
 			fprintf(file, "\n");
 		}
+		fclose(file);
 	}
 	else{
-		//Find in the file game is saved by id, then overwrite it.
-		//The id will have 4 numbers.
-		char idStr[4];
-		sprintf(idStr, "%d", id);
-		int lineWhereId = findLineInFile(file, idStr);
 		//Create TMP file.
 		FILE *fileTmp;
 		fileTmp = fopen("temp.tmp", "w");
@@ -513,6 +514,7 @@ int main() {
 	int (*playingBoardPtr)[BOARD_ROWS][BOARD_COLS] = &playingBoard;
 	char playableCols[BOARD_COLS] = {'A', 'B', 'C', 'D', 'E', 'F', 'G'};
 	int turn=1;
+	int gameID;
 	char *playerOne;
 	char *playerTwo;
 	//COMMENT THIS TO DEBUG
@@ -535,6 +537,8 @@ int main() {
 			clear_screen();
 			printf("Name of the second player: ");
 			getUserInput(playerTwo);
+			//Generate random ID for the game.
+			gameID = randomInt(1000, 9999);
 			clear_screen();
 			//Create playing board.
 			//AKA. Fill it up with zeros.
@@ -548,6 +552,12 @@ int main() {
 					//Player one turn.
 					printf("%s, your turn! ", playerOne);
 					scanf("%c%*c", &colChoice);
+					if (colChoice == 'S'){
+						//Save the game.
+						saveGame(gameID, playerOne, playerTwo, playingBoardPtr);
+						printf("Game saved!\n");
+						continue;
+					}
 					if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
 						printf("\n");
 						printf("Not a playable field!\n");
@@ -597,6 +607,12 @@ int main() {
 					//Player two turn!
 					printf("%s, your turn! ", playerTwo);
 					scanf("%c%*c", &colChoice);
+					if(colChoice == 'S'){
+						//Save the game.
+						saveGame(gameID, playerOne, playerTwo, playingBoardPtr);
+						printf("Game saved!\n");
+						continue;
+					}
 					if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
 						printf("\n");
 						printf("Not a playable field!\n");
