@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define BOARD_ROWS 6
 #define BOARD_COLS 7
+
+#define BUFFER_SIZE 1000
 
 void clear_screen(){
 	//Linux
@@ -302,6 +305,206 @@ int checkTie(int (*b)[BOARD_ROWS][BOARD_COLS]){
 		//Not a tie.
 		return 0;
 	}
+}
+
+typedef struct Game{
+	int gameID;
+    char player1[120];
+    char player2[120];
+    int board[BOARD_ROWS][BOARD_COLS];
+} Game;
+
+int charToInt(char c) {
+    return c - '0';
+}
+
+int randomInt(int lower, int upper){
+	srand(time(0));
+	return (rand() % (upper - lower + 1)) + lower;
+}
+
+int findLineInFile(FILE *file, char *query){
+	int lineCount = 0;
+	char buffer[BUFFER_SIZE];
+	while((fgets(buffer, BUFFER_SIZE, file)) != NULL){
+		lineCount++;
+		//Getting rid of the new line character so that string compare actually works...
+		buffer[strcspn(buffer, "\n")] = 0;
+		if(strcmp(query, buffer) == 0){
+			return lineCount;
+		}
+	}
+	//Not found.
+	return 0;
+}
+
+int saveGame(int id, char *playerOne, char *playerTwo, int (*playingBoard)[BOARD_ROWS][BOARD_COLS]){
+	FILE *file;
+   	file = fopen("saves.txt","a+");
+   	if (file == NULL){
+   		//Failed to open the saves file.
+   		return 0;
+   	}
+	if (id == 0){
+		//New game, just write it down and generate an id for it.
+		id = randomInt(1000, 9999);
+		fprintf(file, "%d\n", id);
+		fprintf(file, "%s\n", playerOne);
+		fprintf(file, "%s\n", playerTwo);
+		for (int i = 0; i<BOARD_ROWS; i++){
+			for (int j = 0; j<BOARD_COLS; j++){
+				fprintf(file, "%d", (*playingBoard)[i][j]);
+			}
+			fprintf(file, "\n");
+		}
+	}
+	else{
+		//Find in the file game is saved by id, then overwrite it.
+		//The id will have 4 numbers.
+		char idStr[4];
+		sprintf(idStr, "%d", id);
+		int lineWhereId = findLineInFile(file, idStr);
+		//Create TMP file.
+		FILE *fileTmp;
+		fileTmp = fopen("temp.tmp", "w");
+		int lineCount = 0;
+		int skipLines = 0;
+		//For whatever reason, after an fgets, the first line gets skipped.
+		//This fixes that.
+		fclose(file);
+		file = fopen("saves.txt","a+");
+		char buffer[BUFFER_SIZE];
+		while((fgets(buffer, BUFFER_SIZE, file)) != NULL){
+			lineCount++;
+			if (lineCount == lineWhereId+3){
+				//Start overwriting the board.
+				for (int i = 0; i<BOARD_ROWS; i++){
+					for (int j = 0; j<BOARD_COLS; j++){
+						fprintf(fileTmp, "%d", (*playingBoard)[i][j]);
+					}
+					fprintf(fileTmp, "\n");
+				}
+				skipLines = 5;
+			}
+			else{
+				if (skipLines > 0){
+					skipLines--;
+					continue;
+				}
+				fputs(buffer, fileTmp);
+			}
+		}
+		fclose(fileTmp);
+		fclose(file);
+		rename("temp.tmp", "./saves.txt");
+	}
+	//Success.
+	return 1;
+}
+
+Game readSavedGame(int id){
+	FILE *file;
+   	file = fopen("saves.txt","a+");
+	char idStr[4];
+	//Converting the id to string.
+	sprintf(idStr, "%d", id);
+	int lineWhereId = findLineInFile(file, idStr);
+	Game savedGame;
+	savedGame.gameID = id;
+	char buffer[BUFFER_SIZE];
+	int board[BOARD_ROWS][BOARD_COLS];
+	int lineCount = 0;
+	int boardRow = 0;
+	if (file == NULL){
+   		//Failed to open the saves file.
+   		//Return an empty game instance.
+   		return savedGame;
+   	}
+	//For whatever reason, after an fgets, the first line gets skipped.
+	//This fixes that.
+	fclose(file);
+	file = fopen("saves.txt","a+");
+	while((fgets(buffer, BUFFER_SIZE, file)) != NULL){
+		lineCount++;
+		if (lineCount == lineWhereId+1){
+			memcpy(savedGame.player1, buffer, sizeof savedGame.player1);
+		}
+		else if(lineCount == lineWhereId+2){
+			memcpy(savedGame.player2, buffer, sizeof savedGame.player2);
+		}
+		//ISSUE WITH -1 WHERE IT READS THE -, THEREFORE THE BOARD IS NOT BUILT PROPERLY
+		//Might discard using -1 as an empty space, instead use 0, player 1 is 1, and player 2 is 2.
+		else if(lineCount >= lineWhereId+3){
+			for (int i=0; i<BOARD_COLS; i++){
+				//Converting all the 0's (because they are char) to int.
+				//Try and replace this with strtol.
+				board[boardRow][i] = charToInt(buffer[i]);
+			}
+			boardRow++;
+			if (boardRow == 6){
+				//End of board, break.
+				break;
+			}
+		}
+	}
+	memcpy(savedGame.board, board, sizeof savedGame.board);
+	return savedGame;
+}
+
+Game *allSavedGames(){
+	Game *games = malloc(sizeof(Game));
+	FILE *file;
+	char buffer[BUFFER_SIZE];
+	int board[BOARD_ROWS][BOARD_COLS];
+   	file = fopen("saves.txt","a+");
+   	//This keeps track of saved games so that the *games can be reallocated after each loop iteartion.
+   	int savedGameNum = 0;
+   	int lineCount = 0;
+   	int boardRow = 0;
+   	char *endChar;
+   	if (file == NULL){
+   		//Failed to open the saves file.
+   		return 0;
+   	}
+   	while((fgets(buffer, BUFFER_SIZE, file)) != NULL){
+   		lineCount++;
+   		if(strcmp("\n", buffer) == 0){
+   			break;
+   		}
+   		if (lineCount == 1){
+   			//Just do the string to int conversion.
+   			games[savedGameNum].gameID = strtol(buffer, &endChar, 10);
+   		}
+   		else if (lineCount == 2){
+   			strcpy(games[savedGameNum].player1, buffer);
+   		}
+   		else if(lineCount == 3){
+   			strcpy(games[savedGameNum].player2, buffer);
+   		}
+   		else if(lineCount >= 4){
+   			for (int i=0; i<BOARD_COLS; i++){
+   				//Converting all the 0's (because they are char) to int.
+   				//Try and replace this with strtol.
+   				board[boardRow][i] = charToInt(buffer[i]);
+   			}
+   			boardRow++;
+   			if (boardRow == 6){
+   				boardRow = 0;
+   				//We need to reset the line count so we can read the next save if it exists.
+   				lineCount = 0;
+   				memcpy(games[savedGameNum].board, board, (sizeof games[savedGameNum].board));
+   				savedGameNum++;
+   				games = (Game*)realloc(games, sizeof(Game) * (savedGameNum+1));
+   			}
+   		}
+   	}
+   	//Adding an empty game object with the id of 0 at the end, so we know where the end of pointnr is.
+   	games = (Game*)realloc(games, (sizeof(Game) * (savedGameNum+1)));
+    Game emptyGame;
+    emptyGame.gameID = 0;
+    games[savedGameNum] = emptyGame;
+   	fclose(file);
+	return games;
 }
 
 int main() {
