@@ -311,6 +311,7 @@ typedef struct Game{
 	int gameID;
     char player1[120];
     char player2[120];
+    int turn;
     int board[BOARD_ROWS][BOARD_COLS];
 } Game;
 
@@ -338,7 +339,7 @@ int findLineInFile(FILE *file, char *query){
 	return 0;
 }
 
-int saveGame(int id, char *playerOne, char *playerTwo, int (*playingBoard)[BOARD_ROWS][BOARD_COLS]){
+int saveGame(int id, char *playerOne, char *playerTwo, int turn, int (*playingBoard)[BOARD_ROWS][BOARD_COLS]){
 	FILE *file;
    	file = fopen("saves.txt","a+");
    	if (file == NULL){
@@ -356,6 +357,7 @@ int saveGame(int id, char *playerOne, char *playerTwo, int (*playingBoard)[BOARD
 		fprintf(file, "%d\n", id);
 		fprintf(file, "%s\n", playerOne);
 		fprintf(file, "%s\n", playerTwo);
+		fprintf(file, "%d\n", turn);
 		for (int i = 0; i<BOARD_ROWS; i++){
 			for (int j = 0; j<BOARD_COLS; j++){
 				fprintf(file, "%d", (*playingBoard)[i][j]);
@@ -420,6 +422,8 @@ Game readSavedGame(int id){
 	int board[BOARD_ROWS][BOARD_COLS];
 	int lineCount = 0;
 	int boardRow = 0;
+	//For string to int conversion.
+	char *endPtr;
 	if (file == NULL){
    		//Failed to open the saves file.
    		//Return an empty game instance.
@@ -434,12 +438,17 @@ Game readSavedGame(int id){
 	while((fgets(buffer, BUFFER_SIZE, file)) != NULL){
 		lineCount++;
 		if (lineCount == lineWhereId+1){
+			buffer[strcspn(buffer, "\n")] = 0;
 			memcpy(savedGame.player1, buffer, sizeof savedGame.player1);
 		}
 		else if(lineCount == lineWhereId+2){
+			buffer[strcspn(buffer, "\n")] = 0;
 			memcpy(savedGame.player2, buffer, sizeof savedGame.player2);
 		}
-		else if(lineCount >= lineWhereId+3){
+		else if(lineCount == lineWhereId+3){
+			savedGame.turn = strtol(buffer, &endPtr, 10);
+		}
+		else if(lineCount >= lineWhereId+4){
 			for (int i=0; i<BOARD_COLS; i++){
 				//Converting all the 0's (because they are char) to int.
 				//Try and replace this with strtol.
@@ -486,7 +495,10 @@ Game *allSavedGames(){
    		else if(lineCount == 3){
    			strcpy(games[savedGameNum].player2, buffer);
    		}
-   		else if(lineCount >= 4){
+   		else if(lineCount == 4){
+   			games[savedGameNum].turn = strtol(buffer, &endChar, 10);
+   		}
+   		else if(lineCount >= 5){
    			for (int i=0; i<BOARD_COLS; i++){
    				//Converting all the 0's (because they are char) to int.
    				//Try and replace this with strtol.
@@ -530,6 +542,7 @@ Game * savedGamesByPlayer(char * player){
 			gamesByPlayer[gameCount].gameID = savedGames[i].gameID;
 			strcpy(gamesByPlayer[gameCount].player1, savedGames[i].player1);
 			strcpy(gamesByPlayer[gameCount].player2, savedGames[i].player2);
+			gamesByPlayer[gameCount].turn = savedGames[i].turn;
 			memcpy(gamesByPlayer[gameCount].board, savedGames[i].board, (sizeof gamesByPlayer[gameCount].board));
 			savedGames = (Game*)realloc(savedGames, sizeof(Game) * (gameCount+1));
 			gameCount++;
@@ -552,6 +565,9 @@ int main() {
 	int gameID;
 	char *playerOne;
 	char *playerTwo;
+	char colChoice;
+	int winner;
+	int isGameLoaded;
 	//COMMENT THIS TO DEBUG
 	clear_screen();
 	while (1){
@@ -578,122 +594,7 @@ int main() {
 			//Create playing board.
 			//AKA. Fill it up with zeros.
 			memset(playingBoard, 0, sizeof(playingBoard));
-			printBoard(playingBoard, playableCols);
-			printf("\n");
-			char colChoice;
-			int winner;
-			while (1){
-				if (turn == 1){
-					//Player one turn.
-					printf("%s, your turn! ", playerOne);
-					scanf("%c%*c", &colChoice);
-					if (colChoice == 'S'){
-						//Save the game.
-						saveGame(gameID, playerOne, playerTwo, playingBoardPtr);
-						printf("Game saved!\n");
-						continue;
-					}
-					else if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
-						printf("\n");
-						printf("Not a playable field!\n");
-						continue;
-					}
-					else{
-						if(makeMove(playingBoardPtr, colChoice, playableCols, turn) == 1) {
-							//Check if there's a winnner.
-							clear_screen();
-							printBoard(playingBoard, playableCols);
-							winner = checkWinner(playingBoardPtr);
-							if (winner != 0){
-								if (winner == 1){
-									printf("%s won!\n", playerOne);
-								}
-								else if (winner == 2){
-									printf("%s won!\n", playerTwo);
-								}
-								printf("Press any key to continue...\n");
-								getchar();
-								free(playerOne);
-								free(playerTwo);
-								break;
-							}
-							else if (checkTie(playingBoardPtr) == 1){
-								printf("It's a tie!\n");
-								printf("Press any key to continue...\n");
-								getchar();
-								free(playerOne);
-								free(playerTwo);
-								break;
-							}
-							//Keep playing
-							else{
-								turn = 2;
-							}
-						}
-						else{
-							printf("\n");
-							printf("This column is full!\n");
-							continue;
-						}	
-					}
-					continue;
-				}
-				else{
-					//Player two turn!
-					printf("%s, your turn! ", playerTwo);
-					scanf("%c%*c", &colChoice);
-					if(colChoice == 'S'){
-						//Save the game.
-						saveGame(gameID, playerOne, playerTwo, playingBoardPtr);
-						printf("Game saved!\n");
-						continue;
-					}
-					if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
-						printf("\n");
-						printf("Not a playable field!\n");
-						continue;
-					}
-					else{
-						if(makeMove(playingBoardPtr, colChoice, playableCols, turn) == 1) {
-							//Check if there's a winnner.
-							clear_screen();
-							printBoard(playingBoard, playableCols);
-							winner = checkWinner(playingBoardPtr);
-							if (winner != 0){
-								if (winner == 1){
-									printf("%s won!\n", playerOne);
-								}
-								else if (winner == 2){
-									printf("%s won!\n", playerTwo);
-								}
-								printf("Press any key to continue...\n");
-								getchar();
-								free(playerOne);
-								free(playerTwo);
-								break;
-							}
-							//Keep playing
-							else if (checkTie(playingBoardPtr) == 1){
-								printf("It's a tie!\n");
-								printf("Press any key to continue...\n");
-								getchar();
-								free(playerOne);
-								free(playerTwo);
-								break;
-							}
-							else{
-								turn = 1;
-							}
-						}
-						else{
-							printf("\n");
-							printf("This coulmnn is full!\n");
-							continue;
-						}	
-					}
-					continue;
-				}
-			}
+			isGameLoaded = 0;
 		}
 		else if (startChoice == 2){
 			clear_screen();
@@ -781,7 +682,26 @@ int main() {
 				continue;
 			}
 			else if(menuTwoChoice == 4){
-				//Yet to implement.
+				int idToGetBoard;
+				printf("Enter the game id: ");
+				scanf("%d%*c", &idToGetBoard);
+				clear_screen();
+				Game game;
+				game = readSavedGame(idToGetBoard);
+				if (game.gameID == idToGetBoard) {
+					gameID = game.gameID;
+					playerOne = game.player1;
+					playerTwo = game.player2;
+					turn = game.turn;
+					memcpy(playingBoard, game.board, sizeof playingBoard);
+					isGameLoaded = 1;
+				}
+				else{
+					printf("No game with that id!\n");
+					printf("Press any key to continue...\n");
+					getchar();
+					continue;
+				}
 			}
 			else if(menuTwoChoice == 5){
 				continue;
@@ -789,9 +709,137 @@ int main() {
 		}
 		else if (startChoice == 3){
 			printf("Exiting...\n");
-			free(playerOne);
-			free(playerTwo);
 			return 0;
+		}
+		printBoard(playingBoard, playableCols);
+		printf("\n");
+		while (1){
+			if (turn == 1){
+				//Player one turn.
+				printf("%s, your turn! ", playerOne);
+				scanf("%c%*c", &colChoice);
+				if (colChoice == 'S'){
+					//Save the game.
+					saveGame(gameID, playerOne, playerTwo, turn, playingBoardPtr);
+					printf("Game saved!\n");
+					continue;
+				}
+				else if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
+					printf("\n");
+					printf("Not a playable field!\n");
+					continue;
+				}
+				else{
+					if(makeMove(playingBoardPtr, colChoice, playableCols, turn) == 1) {
+						//Check if there's a winnner.
+						clear_screen();
+						printBoard(playingBoard, playableCols);
+						winner = checkWinner(playingBoardPtr);
+						if (winner != 0){
+							if (winner == 1){
+								printf("%s won!\n", playerOne);
+							}
+							else if (winner == 2){
+								printf("%s won!\n", playerTwo);
+							}
+							printf("Press any key to continue...\n");
+							getchar();
+							if (isGameLoaded == 0){
+								//If the game is newly created, these two are dynamically allocated.
+								//Therefore, we need to free them.
+								free(playerOne);
+								free(playerTwo);								
+							}
+							break;
+						}
+						else if (checkTie(playingBoardPtr) == 1){
+							printf("It's a tie!\n");
+							printf("Press any key to continue...\n");
+							getchar();
+							if (isGameLoaded == 0){
+								//If the game is newly created, these two are dynamically allocated.
+								//Therefore, we need to free them.
+								free(playerOne);
+								free(playerTwo);								
+							}
+							break;
+						}
+						//Keep playing
+						else{
+							turn = 2;
+						}
+					}
+					else{
+						printf("\n");
+						printf("This column is full!\n");
+						continue;
+					}	
+				}
+				continue;
+			}
+			else{
+				//Player two turn!
+				printf("%s, your turn! ", playerTwo);
+				scanf("%c%*c", &colChoice);
+				if(colChoice == 'S'){
+					//Save the game.
+					saveGame(gameID, playerOne, playerTwo, turn, playingBoardPtr);
+					printf("Game saved!\n");
+					continue;
+				}
+				if (checkItemInArray(colChoice, playableCols, sizeof(playableCols)) == 0){
+					printf("\n");
+					printf("Not a playable field!\n");
+					continue;
+				}
+				else{
+					if(makeMove(playingBoardPtr, colChoice, playableCols, turn) == 1) {
+						//Check if there's a winnner.
+						clear_screen();
+						printBoard(playingBoard, playableCols);
+						winner = checkWinner(playingBoardPtr);
+						if (winner != 0){
+							if (winner == 1){
+								printf("%s won!\n", playerOne);
+							}
+							else if (winner == 2){
+								printf("%s won!\n", playerTwo);
+							}
+							printf("Press any key to continue...\n");
+							getchar();
+							if (isGameLoaded == 0){
+								//If the game is newly created, these two are dynamically allocated.
+								//Therefore, we need to free them.
+								free(playerOne);
+								free(playerTwo);								
+							}
+							break;
+						}
+						//Keep playing
+						else if (checkTie(playingBoardPtr) == 1){
+							printf("It's a tie!\n");
+							printf("Press any key to continue...\n");
+							getchar();
+							if (isGameLoaded == 0){
+								//If the game is newly created, these two are dynamically allocated.
+								//Therefore, we need to free them.
+								free(playerOne);
+								free(playerTwo);								
+							}
+							break;
+						}
+						else{
+							turn = 1;
+						}
+					}
+					else{
+						printf("\n");
+						printf("This coulmnn is full!\n");
+						continue;
+					}	
+				}
+				continue;
+			}
 		}
 	}
 	return 0;
