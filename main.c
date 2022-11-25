@@ -513,13 +513,13 @@ Game * savedGamesByPlayer(char * player){
 	Game * gamesByPlayer = malloc(sizeof(Game));
 	savedGames = allSavedGames();
 	int gameCount = 0;
+	//Removing the new lie character, don't know if there should be one, but doing it just in case.
+	player[strcspn(player, "\n")] = 0;
 	for (int i=0; i<sizeof(savedGames); i++){
 		//Since i added an empty game with the id of 0, we can determine the end.
-		player[strcspn(player, "\n")] = 0;
 		savedGames[i].player1[strcspn(savedGames[i].player1, "\n")] = 0;
 		savedGames[i].player2[strcspn(savedGames[i].player2, "\n")] = 0;
 		if (savedGames[i].gameID == 0){
-			
 			break;
 		}
 		else if ((strcmp(savedGames[i].player1, player)) == 0 || (strcmp(savedGames[i].player2, player)) == 0) {
@@ -531,11 +531,37 @@ Game * savedGamesByPlayer(char * player){
 			gameCount++;
 		}
 	}
+	//Adding an empty game object with the id of 0 at the end, so we know where the end of pointnr is.
 	gamesByPlayer = (Game*)realloc(gamesByPlayer, (sizeof(Game) * (gameCount+1)));
     Game emptyGame;
     emptyGame.gameID = 0;
     gamesByPlayer[gameCount] = emptyGame;
 	return gamesByPlayer;
+}
+
+Game * getGameById(int id){
+	Game * savedGames;
+	Game * game = malloc(sizeof(Game));
+	savedGames = allSavedGames();
+	for (int i=0; i<sizeof(savedGames); i++){
+		//Since i added an empty game with the id of 0, we can determine the end.
+		if (savedGames[i].gameID == 0){
+			break;
+		}
+		else if (savedGames[i].gameID == id) {
+			game[0].gameID = savedGames[i].gameID;
+			strcpy(game[0].player1, savedGames[i].player1);
+			strcpy(game[0].player2, savedGames[i].player2);
+			memcpy(game[0].board, savedGames[i].board, (sizeof game[0].board));
+			break;
+		}
+	}
+   	//Adding an empty game object with the id of 0 at the end, so we know where the end of pointnr is.
+	game = (Game*)realloc(game, (sizeof(Game) * 2));
+    Game emptyGame;
+    emptyGame.gameID = 0;
+    game[1] = emptyGame;
+	return game;
 }
 
 int main() {
@@ -723,6 +749,7 @@ int main() {
 				}
 				printf("Press any key to continue...\n");
 				getchar();
+				free(savedGames);
 				continue;
 			}
 			else if(menuTwoChoice == 2){
@@ -753,10 +780,27 @@ int main() {
 				printf("Press any key to continue...\n");
 				getchar();
 				free(playerName);
+				free(savedGames);
 				continue;
 			}
 			else if(menuTwoChoice == 3){
-				
+				int idToGetBoard;
+				printf("Enter the game id: ");
+				scanf("%d%*c", &idToGetBoard);
+				clear_screen();
+				Game * game;
+				game = getGameById(idToGetBoard);
+				if (game[0].gameID != 0) {
+					//Game found, print board.
+					printBoard(game[0].board, playableCols);
+				}
+				else{
+					printf("No game with that id!\n");
+				}
+				printf("Press any key to continue...\n");
+				getchar();
+				free(game);
+				continue;
 			}
 			else if(menuTwoChoice == 4){
 				
