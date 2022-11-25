@@ -806,7 +806,7 @@ int main() {
 				
 			}
 			else if(menuTwoChoice == 5){
-				
+				continue;
 			}
 		}
 		else if (startChoice == 3){
