@@ -416,7 +416,6 @@ Game readSavedGame(int id){
 		savedGame.gameID = -1;
 		return savedGame;
 	}
-	savedGame.gameID = id;
 	char buffer[BUFFER_SIZE];
 	int board[BOARD_ROWS][BOARD_COLS];
 	int lineCount = 0;
@@ -424,10 +423,12 @@ Game readSavedGame(int id){
 	if (file == NULL){
    		//Failed to open the saves file.
    		//Return an empty game instance.
+   		savedGame.gameID = -1;
    		return savedGame;
    	}
 	//For whatever reason, after an fgets, the first line gets skipped.
 	//This fixes that.
+	savedGame.gameID = id;
 	fclose(file);
 	file = fopen("saves.txt","a+");
 	while((fgets(buffer, BUFFER_SIZE, file)) != NULL){
