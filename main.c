@@ -411,6 +411,11 @@ Game readSavedGame(int id){
 	sprintf(idStr, "%d", id);
 	int lineWhereId = findLineInFile(file, idStr);
 	Game savedGame;
+	if (lineWhereId == 0) {
+		//Not found.
+		savedGame.gameID = -1;
+		return savedGame;
+	}
 	savedGame.gameID = id;
 	char buffer[BUFFER_SIZE];
 	int board[BOARD_ROWS][BOARD_COLS];
@@ -433,8 +438,6 @@ Game readSavedGame(int id){
 		else if(lineCount == lineWhereId+2){
 			memcpy(savedGame.player2, buffer, sizeof savedGame.player2);
 		}
-		//ISSUE WITH -1 WHERE IT READS THE -, THEREFORE THE BOARD IS NOT BUILT PROPERLY
-		//Might discard using -1 as an empty space, instead use 0, player 1 is 1, and player 2 is 2.
 		else if(lineCount >= lineWhereId+3){
 			for (int i=0; i<BOARD_COLS; i++){
 				//Converting all the 0's (because they are char) to int.
@@ -537,31 +540,6 @@ Game * savedGamesByPlayer(char * player){
     emptyGame.gameID = 0;
     gamesByPlayer[gameCount] = emptyGame;
 	return gamesByPlayer;
-}
-
-Game * getGameById(int id){
-	Game * savedGames;
-	Game * game = malloc(sizeof(Game));
-	savedGames = allSavedGames();
-	for (int i=0; i<sizeof(savedGames); i++){
-		//Since i added an empty game with the id of 0, we can determine the end.
-		if (savedGames[i].gameID == 0){
-			break;
-		}
-		else if (savedGames[i].gameID == id) {
-			game[0].gameID = savedGames[i].gameID;
-			strcpy(game[0].player1, savedGames[i].player1);
-			strcpy(game[0].player2, savedGames[i].player2);
-			memcpy(game[0].board, savedGames[i].board, (sizeof game[0].board));
-			break;
-		}
-	}
-   	//Adding an empty game object with the id of 0 at the end, so we know where the end of pointnr is.
-	game = (Game*)realloc(game, (sizeof(Game) * 2));
-    Game emptyGame;
-    emptyGame.gameID = 0;
-    game[1] = emptyGame;
-	return game;
 }
 
 int main() {
@@ -788,22 +766,21 @@ int main() {
 				printf("Enter the game id: ");
 				scanf("%d%*c", &idToGetBoard);
 				clear_screen();
-				Game * game;
-				game = getGameById(idToGetBoard);
-				if (game[0].gameID != 0) {
+				Game game;
+				game = readSavedGame(idToGetBoard);
+				if (game.gameID == idToGetBoard) {
 					//Game found, print board.
-					printBoard(game[0].board, playableCols);
+					printBoard(game.board, playableCols);
 				}
 				else{
 					printf("No game with that id!\n");
 				}
 				printf("Press any key to continue...\n");
 				getchar();
-				free(game);
 				continue;
 			}
 			else if(menuTwoChoice == 4){
-				
+				//Yet to implement.
 			}
 			else if(menuTwoChoice == 5){
 				continue;
