@@ -87,7 +87,7 @@ int makeMove(int (*b)[BOARD_ROWS][BOARD_COLS], char colToPlay, char pCols[], int
 		return 0;
 	}
 	//What.
-	for (int i=BOARD_ROWS; i>-1; i--){
+	for (int i=BOARD_ROWS-1; i>-1; i--){
 		if ((*b)[i][col] == 0){
 			if (player == 1){
 				//Player one
