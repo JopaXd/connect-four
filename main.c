@@ -515,7 +515,7 @@ Game *allSavedGames(){
    			}
    		}
    	}
-   	//Adding an empty game object with the id of 0 at the end, so we know where the end of pointnr is.
+   	//Adding an empty game object with the id of 0 at the end, so we know where the end of pointer is.
    	games = (Game*)realloc(games, (sizeof(Game) * (savedGameNum+1)));
     Game emptyGame;
     emptyGame.gameID = 0;
@@ -548,7 +548,7 @@ Game * savedGamesByPlayer(char * player){
 			gameCount++;
 		}
 	}
-	//Adding an empty game object with the id of 0 at the end, so we know where the end of pointnr is.
+	//Adding an empty game object with the id of 0 at the end, so we know where the end of pointer is.
 	gamesByPlayer = (Game*)realloc(gamesByPlayer, (sizeof(Game) * (gameCount+1)));
     Game emptyGame;
     emptyGame.gameID = 0;
@@ -568,7 +568,6 @@ int main() {
 	char colChoice;
 	int winner;
 	int isGameLoaded;
-	//COMMENT THIS TO DEBUG
 	clear_screen();
 	while (1){
 		clear_screen();
