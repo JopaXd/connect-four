@@ -556,6 +556,40 @@ Game * savedGamesByPlayer(char * player){
 	return gamesByPlayer;
 }
 
+int deleteSavedGame(int id){
+	FILE *file;
+   	file = fopen("saves.txt","a+");
+   	FILE *fileTmp;
+   	fileTmp = fopen("temp.tmp", "w");
+   	int lineCount = 0;
+   	int skipLines = 0;
+	char idStr[4];
+	//Converting the id to string.
+	sprintf(idStr, "%d", id);
+	int lineWhereId = findLineInFile(file, idStr);
+	if (lineWhereId == 0) {
+		//Save not found.
+		return 0;
+	}
+	fclose(file);
+	file = fopen("saves.txt","a+");
+	char buffer[BUFFER_SIZE];
+	while((fgets(buffer, BUFFER_SIZE, file)) != NULL){
+		lineCount++;
+		if (lineCount >= lineWhereId && lineCount < lineWhereId+10){
+			continue;
+		}
+		else{
+			fputs(buffer, fileTmp);
+		}
+	}
+	fclose(fileTmp);
+	fclose(file);
+	rename("temp.tmp", "./saves.txt");
+	//Success.
+	return 1;
+}
+
 int main() {
 	int startChoice;
 	int playingBoard[BOARD_ROWS][BOARD_COLS];
