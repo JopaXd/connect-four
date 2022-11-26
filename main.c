@@ -567,7 +567,13 @@ int main() {
 	char *playerTwo;
 	char colChoice;
 	int winner;
+	//A check variable for whether a saved game is being played or a new one.
+	//Needed for later freeing some pointers.
 	int isGameLoaded;
+	//A check variable for the loop.
+	//It tells the loop whether the user is trying to play a game through creating or loading.
+	//Otherwise, show the menu again.
+	int playGame = 0;
 	clear_screen();
 	while (1){
 		clear_screen();
@@ -594,121 +600,132 @@ int main() {
 			//AKA. Fill it up with zeros.
 			memset(playingBoard, 0, sizeof(playingBoard));
 			isGameLoaded = 0;
+			playGame = 1;
 		}
 		else if (startChoice == 2){
-			clear_screen();
-			int menuTwoChoice;
-			printf("Choose an option:\n");
-			printf("1. List all saved games\n");
-			printf("2. List all saved games for a particular player\n");
-			printf("3. Show the board for a saved game\n");
-			printf("4. Load a game\n");
-			printf("5. Back to main menu\n");
-			scanf("%d%*c", &menuTwoChoice);
-			if (menuTwoChoice == 1){
+			while(1){
 				clear_screen();
-				Game * savedGames;
-				savedGames = allSavedGames();
-				int gameCount = 0;
-				for (int i=0; i<sizeof(savedGames); i++){
-					//Since i added an empty game with the id of 0, we can determine the end.
-					if (savedGames[i].gameID == 0){
-						break;
+				int menuTwoChoice;
+				printf("Choose an option:\n");
+				printf("1. List all saved games\n");
+				printf("2. List all saved games for a particular player\n");
+				printf("3. Show the board for a saved game\n");
+				printf("4. Load a game\n");
+				printf("5. Back to main menu\n");
+				scanf("%d%*c", &menuTwoChoice);
+				if (menuTwoChoice == 1){
+					clear_screen();
+					Game * savedGames;
+					savedGames = allSavedGames();
+					int gameCount = 0;
+					for (int i=0; i<sizeof(savedGames); i++){
+						//Since i added an empty game with the id of 0, we can determine the end.
+						if (savedGames[i].gameID == 0){
+							break;
+						}
+						else{
+							printf("Player 1: %s\n", savedGames[i].player1);
+							printf("Player 2: %s\n", savedGames[i].player2);
+							printf("Game ID: %d\n", savedGames[i].gameID);
+							printf("-------------------------\n");
+							gameCount++;
+						}
+					}
+					if (gameCount == 0){
+						printf("No saved games yet!\n");
+					}
+					printf("Press any key to continue...\n");
+					getchar();
+					free(savedGames);
+					continue;
+				}
+				else if(menuTwoChoice == 2){
+					char *playerName;
+					playerName = malloc(sizeof(char));
+					printf("Enter the player name: ");
+					getUserInput(playerName);
+					clear_screen();
+					Game * savedGames;
+					savedGames = savedGamesByPlayer(playerName);
+					int gameCount = 0;
+					for (int i=0; i<sizeof(savedGames); i++){
+						//Since i added an empty game with the id of 0, we can determine the end.
+						if (savedGames[i].player1 == 0){
+							break;
+						}
+						else if(strcmp(savedGames[i].player1, playerName) == 0 || strcmp(savedGames[i].player2, playerName) == 0){
+							printf("Player 1: %s\n", savedGames[i].player1);
+							printf("Player 2: %s\n", savedGames[i].player2);
+							printf("Game ID: %d\n", savedGames[i].gameID);
+							printf("-------------------------\n");
+							gameCount++;
+						}
+					}
+					if (gameCount == 0){
+						printf("No saved games yet!\n");
+					}
+					printf("Press any key to continue...\n");
+					getchar();
+					free(playerName);
+					free(savedGames);
+					continue;
+				}
+				else if(menuTwoChoice == 3){
+					int idToGetBoard;
+					printf("Enter the game id: ");
+					scanf("%d%*c", &idToGetBoard);
+					clear_screen();
+					Game game;
+					game = readSavedGame(idToGetBoard);
+					if (game.gameID == idToGetBoard) {
+						//Game found, print board.
+						printBoard(game.board, playableCols);
 					}
 					else{
-						printf("Player 1: %s\n", savedGames[i].player1);
-						printf("Player 2: %s\n", savedGames[i].player2);
-						printf("Game ID: %d\n", savedGames[i].gameID);
-						printf("-------------------------\n");
-						gameCount++;
+						printf("No game with that id!\n");
 					}
-				}
-				if (gameCount == 0){
-					printf("No saved games yet!\n");
-				}
-				printf("Press any key to continue...\n");
-				getchar();
-				free(savedGames);
-				continue;
-			}
-			else if(menuTwoChoice == 2){
-				char *playerName;
-				playerName = malloc(sizeof(char));
-				printf("Enter the player name: ");
-				getUserInput(playerName);
-				clear_screen();
-				Game * savedGames;
-				savedGames = savedGamesByPlayer(playerName);
-				int gameCount = 0;
-				for (int i=0; i<sizeof(savedGames); i++){
-					//Since i added an empty game with the id of 0, we can determine the end.
-					if (savedGames[i].player1 == 0){
-						break;
-					}
-					else if(strcmp(savedGames[i].player1, playerName) == 0 || strcmp(savedGames[i].player2, playerName) == 0){
-						printf("Player 1: %s\n", savedGames[i].player1);
-						printf("Player 2: %s\n", savedGames[i].player2);
-						printf("Game ID: %d\n", savedGames[i].gameID);
-						printf("-------------------------\n");
-						gameCount++;
-					}
-				}
-				if (gameCount == 0){
-					printf("No saved games yet!\n");
-				}
-				printf("Press any key to continue...\n");
-				getchar();
-				free(playerName);
-				free(savedGames);
-				continue;
-			}
-			else if(menuTwoChoice == 3){
-				int idToGetBoard;
-				printf("Enter the game id: ");
-				scanf("%d%*c", &idToGetBoard);
-				clear_screen();
-				Game game;
-				game = readSavedGame(idToGetBoard);
-				if (game.gameID == idToGetBoard) {
-					//Game found, print board.
-					printBoard(game.board, playableCols);
-				}
-				else{
-					printf("No game with that id!\n");
-				}
-				printf("Press any key to continue...\n");
-				getchar();
-				continue;
-			}
-			else if(menuTwoChoice == 4){
-				int idToGetBoard;
-				printf("Enter the game id: ");
-				scanf("%d%*c", &idToGetBoard);
-				clear_screen();
-				Game game;
-				game = readSavedGame(idToGetBoard);
-				if (game.gameID == idToGetBoard) {
-					gameID = game.gameID;
-					playerOne = game.player1;
-					playerTwo = game.player2;
-					turn = game.turn;
-					memcpy(playingBoard, game.board, sizeof playingBoard);
-					isGameLoaded = 1;
-				}
-				else{
-					printf("No game with that id!\n");
 					printf("Press any key to continue...\n");
 					getchar();
 					continue;
 				}
+				else if(menuTwoChoice == 4){
+					int idToGetBoard;
+					printf("Enter the game id: ");
+					scanf("%d%*c", &idToGetBoard);
+					clear_screen();
+					Game game;
+					game = readSavedGame(idToGetBoard);
+					if (game.gameID == idToGetBoard) {
+						gameID = game.gameID;
+						playerOne = game.player1;
+						playerTwo = game.player2;
+						turn = game.turn;
+						memcpy(playingBoard, game.board, sizeof playingBoard);
+						isGameLoaded = 1;
+						playGame = 1;
+						break;
+					}
+					else{
+						printf("No game with that id!\n");
+						printf("Press any key to continue...\n");
+						getchar();
+						continue;
+					}
+				}
+				else if(menuTwoChoice == 5){
+					break;
+				}
 			}
-			else if(menuTwoChoice == 5){
-				continue;
+			if (playGame == 0){
+				continue;				
 			}
 		}
 		else if (startChoice == 3){
 			printf("Exiting...\n");
 			return 0;
+		}
+		else{
+			continue;
 		}
 		printBoard(playingBoard, playableCols);
 		printf("\n");
