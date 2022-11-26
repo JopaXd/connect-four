@@ -602,7 +602,8 @@ int main() {
 	char colChoice;
 	int winner;
 	//A check variable for whether a saved game is being played or a new one.
-	//Needed for later freeing some pointers.
+	//Needed for later freeing some playerOne and playerTwo pointers because they
+	//are dynamically allocated if the user creates a new game.
 	int isGameLoaded;
 	//A check variable for the loop.
 	//It tells the loop whether the user is trying to play a game through creating or loading.
@@ -798,7 +799,11 @@ int main() {
 								//If the game is newly created, these two are dynamically allocated.
 								//Therefore, we need to free them.
 								free(playerOne);
-								free(playerTwo);								
+								free(playerTwo);							
+							}
+							else{
+								//This game was loaded from a save, delete save.
+								deleteSavedGame(gameID);
 							}
 							break;
 						}
@@ -811,6 +816,10 @@ int main() {
 								//Therefore, we need to free them.
 								free(playerOne);
 								free(playerTwo);								
+							}
+							else{
+								//This game was loaded from a save, delete save.
+								deleteSavedGame(gameID);
 							}
 							break;
 						}
@@ -863,6 +872,10 @@ int main() {
 								free(playerOne);
 								free(playerTwo);								
 							}
+							else{
+								//This game was loaded from a save, delete save.
+								deleteSavedGame(gameID);
+							}
 							break;
 						}
 						//Keep playing
@@ -875,6 +888,10 @@ int main() {
 								//Therefore, we need to free them.
 								free(playerOne);
 								free(playerTwo);								
+							}
+							else{
+								//This game was loaded from a save, delete save.
+								deleteSavedGame(gameID);
 							}
 							break;
 						}
