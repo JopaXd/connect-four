@@ -591,7 +591,7 @@ int deleteSavedGame(int id){
 }
 
 int main() {
-	int startChoice;
+	int startChoice = 0;
 	int playingBoard[BOARD_ROWS][BOARD_COLS];
 	int (*playingBoardPtr)[BOARD_ROWS][BOARD_COLS] = &playingBoard;
 	char playableCols[BOARD_COLS] = {'A', 'B', 'C', 'D', 'E', 'F', 'G'};
@@ -607,8 +607,10 @@ int main() {
 	int isGameLoaded;
 	//A check variable for the loop.
 	//It tells the loop whether the user is trying to play a game through creating or loading.
-	//Otherwise, show the menu again.
 	int playGame = 0;
+	//Otherwise, show the menu again.
+	//To clear stdin.
+	int c;
 	clear_screen();
 	while (1){
 		clear_screen();
@@ -620,7 +622,9 @@ int main() {
 		printf("3. Exit the game\n");
 		// This %*c is necessary. Otherwise the scanf makes getchar in getUserInput get skipped.
 		// No idea...
-		scanf("%d%*c", &startChoice);
+		scanf("%d", &startChoice);
+		//Clearing stdin.
+		while ((c = getchar()) != '\n' && c != EOF);
 		if (startChoice == 1) {
 			clear_screen();
 			printf("Name of the first player: ");
@@ -640,14 +644,15 @@ int main() {
 		else if (startChoice == 2){
 			while(1){
 				clear_screen();
-				int menuTwoChoice;
+				int menuTwoChoice = 0;
 				printf("Choose an option:\n");
 				printf("1. List all saved games\n");
 				printf("2. List all saved games for a particular player\n");
 				printf("3. Show the board for a saved game\n");
 				printf("4. Load a game\n");
 				printf("5. Back to main menu\n");
-				scanf("%d%*c", &menuTwoChoice);
+				scanf("%d", &menuTwoChoice);
+				while ((c = getchar()) != '\n' && c != EOF);
 				if (menuTwoChoice == 1){
 					clear_screen();
 					Game * savedGames;
@@ -708,7 +713,8 @@ int main() {
 				else if(menuTwoChoice == 3){
 					int idToGetBoard;
 					printf("Enter the game id: ");
-					scanf("%d%*c", &idToGetBoard);
+					scanf("%d", &idToGetBoard);
+					while ((c = getchar()) != '\n' && c != EOF);
 					clear_screen();
 					Game game;
 					game = readSavedGame(idToGetBoard);
@@ -726,7 +732,8 @@ int main() {
 				else if(menuTwoChoice == 4){
 					int idToGetBoard;
 					printf("Enter the game id: ");
-					scanf("%d%*c", &idToGetBoard);
+					scanf("%d", &idToGetBoard);
+					while ((c = getchar()) != '\n' && c != EOF);
 					clear_screen();
 					Game game;
 					game = readSavedGame(idToGetBoard);
@@ -768,7 +775,8 @@ int main() {
 			if (turn == 1){
 				//Player one turn.
 				printf("%s, your turn! ", playerOne);
-				scanf("%c%*c", &colChoice);
+				scanf("%c", &colChoice);
+				while ((c = getchar()) != '\n' && c != EOF);
 				if (colChoice == 'S'){
 					//Save the game.
 					saveGame(gameID, playerOne, playerTwo, turn, playingBoardPtr);
@@ -839,7 +847,8 @@ int main() {
 			else{
 				//Player two turn!
 				printf("%s, your turn! ", playerTwo);
-				scanf("%c%*c", &colChoice);
+				scanf("%c", &colChoice);
+				while ((c = getchar()) != '\n' && c != EOF);
 				if(colChoice == 'S'){
 					//Save the game.
 					saveGame(gameID, playerOne, playerTwo, turn, playingBoardPtr);
