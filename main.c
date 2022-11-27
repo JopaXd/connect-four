@@ -813,6 +813,8 @@ int main() {
 								//This game was loaded from a save, delete save.
 								deleteSavedGame(gameID);
 							}
+							//Resetting this variable.
+							playGame = 0;
 							break;
 						}
 						else if (checkTie(playingBoardPtr) == 1){
@@ -885,6 +887,8 @@ int main() {
 								//This game was loaded from a save, delete save.
 								deleteSavedGame(gameID);
 							}
+							//Resetting this variable.
+							playGame = 0;
 							break;
 						}
 						//Keep playing
@@ -902,6 +906,8 @@ int main() {
 								//This game was loaded from a save, delete save.
 								deleteSavedGame(gameID);
 							}
+							//Resetting this variable.
+							playGame = 0;
 							break;
 						}
 						else{
